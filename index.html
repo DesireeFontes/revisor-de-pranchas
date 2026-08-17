@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revisor de Pranchas | Pré-revisão no Revit</title>
+<meta name="description" content="Antes de emitir, descubra o que ficou para trás. O Revisor de Pranchas localiza possíveis pendências e ajuda você a revisar com mais direção no Revit.">
+<style>
+:root{
+  --ink:#071725;
+  --ink2:#102536;
+  --wine:#671c27;
+  --red:#b3343e;
+  --paper:#f4efe7;
+  --cream:#fbf8f3;
+  --muted:#9dacb7;
+  --line:rgba(244,239,231,.14);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--ink);
+  color:var(--paper);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+img,video{display:block;max-width:100%}
+a{color:inherit}
+.container{width:min(1080px,calc(100% - 36px));margin:auto}
+.section{padding:66px 0}
+.light{background:var(--paper);color:var(--ink)}
+.eyebrow{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#d99aa0;margin-bottom:12px}
+.light .eyebrow{color:var(--wine)}
+h1,h2,h3,p{margin-top:0}
+h1{font-size:clamp(42px,6vw,72px);line-height:.98;letter-spacing:-.045em;margin-bottom:20px}
+h2{font-size:clamp(30px,4vw,46px);line-height:1.05;letter-spacing:-.03em;margin-bottom:16px}
+h3{font-size:18px;line-height:1.25;margin-bottom:7px}
+.lead{font-size:clamp(17px,2vw,21px);line-height:1.55;color:#c7d1d8;max-width:700px}
+.muted{color:#5f6c75}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:54px;padding:0 24px;
+  text-decoration:none;font-weight:900;
+  border:none;cursor:pointer;transition:.18s ease;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--paper);color:var(--ink)}
+.btn-wine{background:var(--wine);color:#fff}
+.header{
+  position:sticky;top:0;z-index:40;
+  background:rgba(7,23,37,.94);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.nav{height:60px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{font-size:12px;font-weight:900;letter-spacing:.11em;text-transform:uppercase}
+.hero{
+  padding:64px 0 56px;
+  background:
+    radial-gradient(circle at 82% 12%,rgba(179,52,62,.14),transparent 28%),
+    linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);
+  background-size:auto,32px 32px,32px 32px;
+}
+.hero-grid{display:grid;grid-template-columns:1.03fr .97fr;gap:42px;align-items:center}
+.hero-points{display:flex;flex-wrap:wrap;gap:9px;margin:22px 0 26px}
+.pill{border:1px solid var(--line);padding:8px 10px;font-size:12px;color:#c9d3d9;background:rgba(255,255,255,.03)}
+.price-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.price{font-size:14px;color:#c8d2d9}
+.price strong{font-size:27px;color:#fff}
+.frame{border:1px solid rgba(255,255,255,.16);background:#0b1c29;padding:9px;position:relative;overflow:hidden}
+.frame video{width:100%;aspect-ratio:9/16;max-height:590px;object-fit:contain;background:#050b10}
+.proof-tag{position:absolute;left:17px;bottom:17px;background:rgba(7,23,37,.92);border:1px solid rgba(255,255,255,.16);padding:8px 10px;font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:28px}
+.card-light{background:rgba(255,255,255,.4);border:1px solid rgba(7,23,37,.12);padding:22px}
+.card-light .num{font-size:11px;color:var(--wine);font-weight:900;letter-spacing:.12em;margin-bottom:24px}
+.card-light p{margin:0;color:#58656e}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:28px}
+.step{padding-top:16px;border-top:1px solid var(--line)}
+.step span{display:block;font-size:11px;font-weight:900;letter-spacing:.1em;color:#d99aa0;margin-bottom:10px}
+.step p{margin:0;color:#b8c4cc;font-size:14px}
+.proof-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:28px;align-items:center}
+.report{background:#fff;border:1px solid rgba(255,255,255,.15);padding:10px}
+.large-report img{width:100%;height:auto;object-fit:contain}
+.compact-proof h2{max-width:520px}
+.checks{display:grid;gap:12px;margin:22px 0 0}
+.compact-checks{margin-top:18px;gap:9px}
+.compact-checks .check p{font-size:15px}
+.discipline-line{margin:22px 0 0;font-size:13px;font-weight:800;line-height:1.6;color:#d8e0e5}
+.discipline-note{font-size:12px;color:#93a4af;margin-top:6px}
+.check{display:flex;gap:10px;align-items:flex-start}
+.check i{width:9px;height:9px;background:var(--red);display:block;flex:none;margin-top:7px}
+.check p{margin:0;color:#b8c4cc}
+
+
+.discipline-note{font-size:12px;color:#93a4af;margin-top:13px}
+.receive-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:start;margin-top:28px}
+.bundle{background:var(--cream);border:1px solid rgba(7,23,37,.12);padding:24px}
+.bundle-item{padding:14px 0;border-bottom:1px solid rgba(7,23,37,.11)}
+.bundle-item:last-child{border-bottom:0}
+.bundle-item strong{display:block;margin-bottom:4px}
+.bundle-item span{font-size:14px;color:#5b6972}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.shots img{width:100%;height:100%;min-height:280px;object-fit:cover;border:1px solid rgba(7,23,37,.12)}
+.offer{text-align:center;background:linear-gradient(180deg,#681c28,#52131d);padding:68px 20px}
+.offer h2{max-width:690px;margin-left:auto;margin-right:auto}
+.offer p{max-width:620px;margin-left:auto;margin-right:auto;color:#eadde0}
+.offer-price{font-size:52px;font-weight:900;letter-spacing:-.04em;margin:10px 0 20px}
+.microfaq{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:900px;margin:26px auto 0;text-align:left}
+.microfaq div{border-top:1px solid rgba(255,255,255,.22);padding-top:12px}
+.microfaq strong{display:block;font-size:13px;margin-bottom:5px}
+.microfaq span{font-size:12px;color:#d7c1c4}
+.small{font-size:11px;color:#c8aeb2;margin-top:13px}
+.mobile-cta{display:none}
+@media(max-width:860px){
+  .hero-grid,.proof-grid,.receive-grid{grid-template-columns:1fr}
+  .problem-grid{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .frame video{max-height:540px}
+}
+@media(max-width:620px){
+  .container{width:min(100% - 26px,1080px)}
+  .section{padding:50px 0}
+  .hero{padding:46px 0 40px}
+  h1{font-size:42px}
+  .steps,.shots,.microfaq{grid-template-columns:1fr}
+  .nav .btn{padding:0 15px;min-height:44px;font-size:13px}
+  .mobile-cta{display:block;position:fixed;left:10px;right:10px;bottom:10px;z-index:60}
+  .mobile-cta .btn{width:100%;box-shadow:0 10px 30px rgba(0,0,0,.36)}
+  body{padding-bottom:76px}
+}
+
+/* V8 — compactação e legibilidade */
+.proof-section{padding:46px 0}
+.compact-proof{
+  grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);
+  gap:34px;
+  align-items:center;
+}
+.large-report{
+  background:#fff;
+  padding:8px;
+  border:1px solid rgba(255,255,255,.15);
+  min-height:0;
+}
+.large-report img{
+  width:100%;
+  height:auto;
+  max-height:520px;
+  object-fit:contain;
+}
+.proof-copy h2{
+  font-size:clamp(30px,3.2vw,44px);
+  max-width:470px;
+  margin-bottom:18px;
+}
+.compact-checks{gap:8px;margin-top:10px}
+.compact-checks .check p{font-size:15px}
+.discipline-line{
+  margin:18px 0 0;
+  font-size:12px;
+  font-weight:800;
+  line-height:1.6;
+  color:#d8e0e5;
+}
+.discipline-note{
+  margin:5px 0 0;
+  font-size:11px;
+  color:#93a4af;
+}
+
+.receive-section{padding:52px 0}
+.receive-head h2{margin-bottom:0}
+.compact-receive{
+  grid-template-columns:1.1fr .9fr;
+  gap:24px;
+  margin-top:24px;
+  align-items:stretch;
+}
+.compact-bundle{
+  padding:20px 24px;
+  height:100%;
+}
+.compact-bundle .bundle-item{padding:12px 0}
+.compact-bundle .bundle-item strong{font-size:16px}
+.compact-bundle .bundle-item span{font-size:13px;line-height:1.45}
+.compact-shots{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.compact-shots figure{
+  margin:0;
+  background:#fff;
+  border:1px solid rgba(7,23,37,.12);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.compact-shots img{
+  width:100%;
+  height:230px;
+  min-height:0;
+  object-fit:cover;
+  display:block;
+}
+.compact-shots figcaption{
+  padding:8px 10px;
+  font-size:12px;
+  font-weight:800;
+  color:var(--ink);
+}
+@media(max-width:860px){
+  .compact-proof,.compact-receive{grid-template-columns:1fr}
+  .large-report img{max-height:none}
+}
+@media(max-width:620px){
+  .proof-section,.receive-section{padding:38px 0}
+  .compact-shots{grid-template-columns:1fr 1fr}
+  .compact-shots img{height:160px}
+  .proof-copy h2{font-size:32px}
+}
+
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="container nav">
+    <div class="brand">Revisor de Pranchas</div>
+    <a class="btn btn-wine" href="https://pay.kiwify.com.br/pnXYNAo" target="_blank" rel="noopener">Quero o Revisor</a>
+  </div>
+</header>
+
+<main>
+
+<!-- 1. HERO -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <div class="eyebrow">Pré-revisão no Revit</div>
+      <h1>Antes de emitir, descubra o que ficou para trás.</h1>
+      <p class="lead">O Revisor de Pranchas localiza possíveis pendências, mostra onde você precisa olhar e ajuda a corrigir automaticamente alguns tipos de ocorrência.</p>
+
+      <div class="hero-points">
+        <span class="pill">Dynamo Player</span>
+        <span class="pill">Sem precisar programar</span>
+        <span class="pill">Vista + Element ID</span>
+      </div>
+
+      <div class="price-row">
+        <a class="btn btn-primary" href="https://pay.kiwify.com.br/pnXYNAo" target="_blank" rel="noopener">Quero o Revisor →</a>
+        <div class="price">acesso por <strong>R$47</strong></div>
+      </div>
+    </div>
+
+    <div class="frame">
+      <video autoplay muted loop playsinline preload="auto" poster="./relatorio.png" aria-label="Demonstração silenciosa do Revisor de Pranchas no Revit">
+        <source src="./demo.mp4" type="video/mp4">
+      </video>
+      <div class="proof-tag">Demonstração real no Revit</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. PROBLEMA -->
+<section class="section light">
+  <div class="container">
+    <div class="eyebrow">O retrabalho aparece aqui</div>
+    <h2>Você altera o projeto. Depois precisa lembrar tudo que essa alteração pode ter afetado.</h2>
+
+    <div class="problem-grid">
+      <div class="card-light">
+        <div class="num">01</div>
+        <h3>Algo fica para trás</h3>
+        <p>Uma tag, um texto ou uma cota pode passar despercebida até a revisão final.</p>
+      </div>
+      <div class="card-light">
+        <div class="num">02</div>
+        <h3>Você revisa sem direção</h3>
+        <p>Vista por vista, tentando lembrar onde procurar.</p>
+      </div>
+      <div class="card-light">
+        <div class="num">03</div>
+        <h3>O erro aparece tarde</h3>
+        <p>Justamente quando a prancha já parecia pronta para emitir.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. COMO FUNCIONA -->
+<section class="section">
+  <div class="container">
+    <div class="eyebrow">Como funciona</div>
+    <h2>Execute. Localize. Corrija. Rode de novo.</h2>
+
+    <div class="steps">
+      <div class="step"><span>01</span><h3>Execute</h3><p>Rode a rotina pelo Dynamo Player.</p></div>
+      <div class="step"><span>02</span><h3>Localize</h3><p>Veja a vista e o Element ID dos pontos encontrados.</p></div>
+      <div class="step"><span>03</span><h3>Corrija</h3><p>Resolva os casos suportados pela própria rotina.</p></div>
+      <div class="step"><span>04</span><h3>Revise de novo</h3><p>Rode outra checagem e veja o que ainda merece atenção.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. PROVA + DISCIPLINAS -->
+<section class="section proof-section">
+  <div class="container proof-grid compact-proof">
+    <div class="report large-report">
+      <img src="./relatorio.png" alt="Relatório real gerado pelo Revisor de Pranchas" loading="lazy">
+    </div>
+
+    <div class="proof-copy">
+      <div class="eyebrow">Prova visual</div>
+      <h2>Veja onde olhar antes de revisar tudo.</h2>
+
+      <div class="checks compact-checks">
+        <div class="check"><i></i><p>Vista da pendência</p></div>
+        <div class="check"><i></i><p>Element ID</p></div>
+        <div class="check"><i></i><p>Nova checagem</p></div>
+      </div>
+
+      <p class="discipline-line">Arquitetura • Elétrica • Hidráulica • Estrutura • HVAC</p>
+      <p class="discipline-note">Exemplos visuais: arquitetura e elétrica.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5. O QUE RECEBE -->
+<section class="section light receive-section">
+  <div class="container">
+    <div class="receive-head">
+      <div>
+        <div class="eyebrow">O que você recebe</div>
+        <h2>O necessário para começar.</h2>
+      </div>
+    </div>
+
+    <div class="receive-grid compact-receive">
+      <div class="bundle compact-bundle">
+        <div class="bundle-item">
+          <strong>Revisor de Pranchas</strong>
+          <span>Rotina pronta para usar no Dynamo Player.</span>
+        </div>
+        <div class="bundle-item">
+          <strong>Aula prática</strong>
+          <span>Execução, leitura e localização das pendências.</span>
+        </div>
+        <div class="bundle-item">
+          <strong>2 projetos de experimentação</strong>
+          <span>Arquitetura e elétrica.</span>
+        </div>
+        <div class="bundle-item">
+          <strong>Checklist Antes de Emitir</strong>
+          <span>O que automatizar e o que ainda depende da sua análise.</span>
+        </div>
+      </div>
+
+      <div class="shots compact-shots">
+        <figure>
+          <img src="./projeto_arquitetura.png" alt="Projeto de arquitetura no Revit" loading="lazy">
+          <figcaption>Arquitetura</figcaption>
+        </figure>
+        <figure>
+          <img src="./projeto_eletrica.png" alt="Projeto elétrico no Revit" loading="lazy">
+          <figcaption>Elétrica</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. OFERTA -->
+<section class="offer">
+  <div class="eyebrow" style="color:#f0c8cc">Revisor de Pranchas</div>
+  <h2>Antes de emitir, saiba onde olhar.</h2>
+  <p>Uma pré-revisão para reduzir a busca manual por pequenas pendências e revisar com mais direção.</p>
+
+  <div class="offer-price">R$47</div>
+  <a class="btn btn-primary" href="https://pay.kiwify.com.br/pnXYNAo" target="_blank" rel="noopener">Quero o Revisor de Pranchas →</a>
+
+  <div class="microfaq">
+    <div>
+      <strong>Preciso saber Dynamo?</strong>
+      <span>Não. A rotina principal roda pelo Dynamo Player.</span>
+    </div>
+    <div>
+      <strong>Ele corrige tudo?</strong>
+      <span>Não. Alguns tipos de ocorrência podem ser corrigidos pela rotina.</span>
+    </div>
+    <div>
+      <strong>Substitui minha revisão?</strong>
+      <span>Não. Ele direciona sua atenção; a decisão técnica continua sendo sua.</span>
+    </div>
+  </div>
+
+  <div class="small">Checkout seguro pela Kiwify.</div>
+</section>
+
+</main>
+
+<div class="mobile-cta">
+  <a class="btn btn-wine" href="https://pay.kiwify.com.br/pnXYNAo" target="_blank" rel="noopener">Quero o Revisor — R$47</a>
+</div>
+
+</body>
+</html>
